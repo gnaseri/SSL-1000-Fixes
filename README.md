@@ -1,5 +1,8 @@
 # SSL-1000-Fixes
-Suggested Next Steps for 1000 Common Issues in Self-Supervised Learning
+
+Suggested Next Steps for 1000 Common Issues in Self-Supervised Learning. (LLM generated)
+
+The “Suggested Next Steps” section serves as a practical guide for researchers, helping to diagnose training or evaluation issues based on observed symptoms. Each entry maps common challenges to solutions drawn from deep learning practice.
 
 ---
 
