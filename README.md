@@ -3,7 +3,7 @@
 
 A compilation of 1000 potential issues and their suggested next steps, aiming to support the systematic study and refinement of self-supervised learning workflows.
 
-Note: This list has not been fully reviewed by humans. It is intended to spark ideas and highlight potential directions to explore. Please make sure to critically evaluate any items you plan to experiment with, and consider discussing them with human experts before adapting them to your work.
+**Note:** This list has not been fully reviewed by humans. It is intended to spark ideas and highlight potential directions to explore. **Make sure to critically evaluate any items you plan to experiment with, and consider discussing them with human experts before adapting them to your work.**
 
 ---
 
