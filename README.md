@@ -1,6 +1,8 @@
 # SSL-1000-Fixes
 
+
 A compilation of 1000 potential issues and their suggested next steps, aiming to support the systematic study and refinement of self-supervised learning workflows.
+
 
 ---
 
