@@ -3,6 +3,7 @@ Suggested Next Steps for 1000 Common Issues in Self-Supervised Learning
 
 
 
+
 ## 1. Representation Rank is Low
 
 **Symptoms:**
