@@ -3,6 +3,11 @@ Suggested Next Steps for 1000 Common Issues in Self-Supervised Learning
 
 
 
+Perfect. Here are the **first 20 items (1–20)** in your specified Markdown format:
+
+---
+
+```markdown
 
 ## 1. Representation Rank is Low
 
@@ -130,3 +135,130 @@ Suggested Next Steps for 1000 Common Issues in Self-Supervised Learning
 - Use smaller learning rate or mixed-precision training with GradScaler.
 
 ---
+
+## 11. Loss Plateaus Early
+
+**Symptoms:**
+- Loss stops improving in early epochs.
+
+**Suggested Next Steps:**
+- Use a learning rate scheduler (StepLR, CosineAnnealing, etc.).
+- Add warmup steps at the start.
+- Increase model capacity (width or depth).
+- Check for data leakage or label noise if applicable.
+
+---
+
+## 12. Very Low Output Variance
+
+**Symptoms:**
+- All output features are near zero or constant across samples.
+
+**Suggested Next Steps:**
+- Initialize final layer biases to small non-zero values.
+- Use LayerNorm in the output head.
+- Regularize output to have unit variance.
+- Inspect input normalization and activation function saturation.
+
+---
+
+## 13. Poor Transfer to Downstream Task
+
+**Symptoms:**
+- Learned representations perform poorly on supervised tasks.
+
+**Suggested Next Steps:**
+- Introduce task-aware pretext signals.
+- Add semantic consistency loss if applicable.
+- Use larger datasets or pretrained backbones.
+- Fine-tune with a small supervised head to guide representation.
+
+---
+
+## 14. Slow Training
+
+**Symptoms:**
+- Training epochs take too long.
+
+**Suggested Next Steps:**
+- Optimize data loading (e.g., increase num_workers, use .pin_memory()).
+- Use mixed precision or channels_last format.
+- Profile with torch.profiler or nvprof to locate bottlenecks.
+- Chunk long sequences if you’re doing sequential modeling.
+
+---
+
+## 15. BatchNorm or LayerNorm Acting Erratically
+
+**Symptoms:**
+- Normalization hurts performance or destabilizes training.
+
+**Suggested Next Steps:**
+- Try GroupNorm or InstanceNorm instead.
+- Replace with no normalization and tune learning rate carefully.
+- If using DDP: ensure BatchNorm is synchronized (SyncBatchNorm).
+
+---
+
+## 16. Representations Are Nearly Identical Across Augmented Views
+
+**Symptoms:**
+- High cosine similarity between outputs from different views.
+
+**Suggested Next Steps:**
+- Add stochastic layers (e.g., dropout) before the projector.
+- Increase augmentation intensity (e.g., stronger color jitter, masking).
+- Add temporal or spatial shift if applicable (e.g., for video or sequence data).
+
+---
+
+## 17. Checkpoint Sizes Are Too Large
+
+**Symptoms:**
+- Disk fills up quickly or model is hard to share.
+
+**Suggested Next Steps:**
+- Save only model weights, not full optimizer states.
+- Use state_dict() filtering to exclude unneeded buffers.
+- Save in float16 if inference is not affected.
+
+---
+
+## 18. Embedding Dimensions Used Unevenly
+
+**Symptoms:**
+- Some dimensions are always close to 0, others dominate.
+
+**Suggested Next Steps:**
+- Add uniformity loss or entropy maximization on features.
+- Apply decorrelation or orthogonality constraints.
+- Use learned positional encoding or non-linear projectors.
+
+---
+
+## 19. EMA Target Doesn’t Help
+
+**Symptoms:**
+- EMA-targeted representations don’t stabilize or improve.
+
+**Suggested Next Steps:**
+- Reduce the EMA decay at early epochs (e.g., start at 0.9 and anneal to 0.99).
+- Re-initialize EMA with online model every few epochs (experimental).
+- Try using fixed encoder instead of EMA to test isolation.
+
+---
+
+## 20. Visualization Metrics Don’t Change Over Epochs
+
+**Symptoms:**
+- PCA, cosine similarity, rank, or eigenvalue plots are flat.
+
+**Suggested Next Steps:**
+- Increase the training duration.
+- Visualize per-class metrics or region-specific patterns.
+- Log metrics after more granular intervals (e.g., every few batches).
+- Inspect if loss is still changing — maybe the model is learning but not diversifying representations.
+
+---
+
+
