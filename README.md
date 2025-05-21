@@ -1,10 +1,6 @@
 # SSL-1000-Fixes
 Suggested Next Steps for 1000 Common Issues in Self-Supervised Learning
 
-
-
-Perfect. Here are the **first 20 items (1–20)** in your specified Markdown format:
-
 ---
 
 ## 1. Representation Rank is Low
@@ -978,9 +974,6 @@ Perfect. Here are the **first 20 items (1–20)** in your specified Markdown for
 - Try partial freezing or reinitializing the final layers during finetuning.
 
 ---
-Here are items **81–100** in your requested Markdown format:
-
----
 
 ## 81. BatchNorm Statistics Drift Wildly Between Epochs
 
@@ -1219,6 +1212,246 @@ Here are items **81–100** in your requested Markdown format:
 - Apply total correlation regularization (e.g., in β-TCVAE).
 - Use PCA whitening or Barlow Twins-style decorrelation loss.
 - Introduce structured sparsity to push diversity across features.
+
+---
+
+## 101. Encoder Layers Are Bypassed
+
+**Symptoms:**
+- Final features ignore early-layer representations.
+
+**Suggested Next Steps:**
+- Add skip connections and supervise intermediate outputs.
+- Penalize activation redundancy across layers.
+- Replace deep linear chains with multi-scale feature fusion.
+
+---
+
+## 102. Noise Sensitivity Appears Only During Inference
+
+**Symptoms:**
+- Model behaves robustly during training but is brittle at test time.
+
+**Suggested Next Steps:**
+- Add test-time augmentation (e.g., augment-and-aggregate).
+- Perform Monte Carlo dropout or ensembling during inference.
+- Train with distributional robustness objectives.
+
+---
+
+## 103. Positional Encodings Dominate Early Training
+
+**Symptoms:**
+- Position information overwhelms content features.
+
+**Suggested Next Steps:**
+- Decay position encodings over time (e.g., annealed strength).
+- Switch to relative position encoding.
+- Add auxiliary tasks that rely solely on content, not position.
+
+---
+
+## 104. Model Can’t Differentiate Easy from Hard Samples
+
+**Symptoms:**
+- Accuracy is uniform across all sample types (easy/hard, frequent/rare).
+
+**Suggested Next Steps:**
+- Add difficulty-aware losses (e.g., focal loss, margin-based reweighting).
+- Use self-paced learning or curriculum learning.
+- Label easy vs. hard examples with a confidence head.
+
+---
+
+## 105. Model Learns Dataset-Specific Artifacts
+
+**Symptoms:**
+- Performs well on training set, but fails on slightly restructured data (e.g., shifted, rescaled, renamed classes).
+
+**Suggested Next Steps:**
+- Augment with synthetic transformations or adversarial corruption.
+- Apply domain randomization (e.g., color, blur, resolution).
+- Add artifact suppression loss (e.g., decorrelate background).
+
+---
+
+## 106. Embedding Similarity Is Not Transitive
+
+**Symptoms:**
+- A ≈ B and B ≈ C, but A ≠ C in latent space.
+
+**Suggested Next Steps:**
+- Apply triplet loss or relational contrastive loss to enforce transitivity.
+- Introduce semantic anchors (e.g., prototype centers).
+- Try contrastive clustering frameworks (e.g., SwAV, DeepCluster).
+
+---
+
+## 107. Model Improves Accuracy but Forgets Earlier Examples
+
+**Symptoms:**
+- Accuracy goes up overall but drops on previously mastered samples.
+
+**Suggested Next Steps:**
+- Use Elastic Weight Consolidation (EWC) or LwF to retain past knowledge.
+- Add memory replay buffer for prior batch samples.
+- Introduce importance-weighted regularization on older activations.
+
+---
+
+## 108. Features Are Over-Aligned Across Classes
+
+**Symptoms:**
+- Representations for different classes fall into same regions.
+
+**Suggested Next Steps:**
+- Add class-conditional contrastive terms.
+- Apply Supervised Contrastive Learning (SupCon).
+- Add margin penalties between class centers.
+
+---
+
+## 109. Model Fails to Learn Abstract Patterns
+
+**Symptoms:**
+- Learns pixel-level or token-level structure, but not higher-level concepts.
+
+**Suggested Next Steps:**
+- Add hierarchical prediction objectives (e.g., segment-level prediction).
+- Use multi-level pooling and cross-scale attention.
+- Introduce task-aware augmentation (e.g., mask shapes, object removal).
+
+---
+
+## 110. Latent Space Is Not Interpretable
+
+**Symptoms:**
+- Difficult to associate any axis or region with meaningful behavior.
+
+**Suggested Next Steps:**
+- Apply disentanglement constraints (e.g., β-VAE, InfoGAN).
+- Add axis alignment loss (match specific dimensions to interpretable features).
+- Use linear probing or mutual information diagnostics on each axis.
+
+---
+
+## 111. Contrastive Loss Doesn’t Improve After Few Epochs
+
+**Symptoms:**
+- InfoNCE or triplet loss stagnates early.
+
+**Suggested Next Steps:**
+- Increase batch size or introduce cross-batch memory.
+- Add hard negative mining or false positive suppression.
+- Anneal temperature parameter to sharpen contrast.
+
+---
+
+## 112. Some Augmentations Hurt More Than Help
+
+**Symptoms:**
+- Certain transforms consistently degrade performance.
+
+**Suggested Next Steps:**
+- Log augmentation-wise performance (Ablation).
+- Weight augmentations dynamically via learned augmentation policy (e.g., RandAugment, CTAugment).
+- Use augmentation mixing or adaptive sampling.
+
+---
+
+## 113. Feature Collapse Occurs Only With Certain Optimizers
+
+**Symptoms:**
+- Model collapses only with, e.g., SGD but not Adam.
+
+**Suggested Next Steps:**
+- Tune momentum and weight decay separately per optimizer.
+- Try Lookahead or LION optimizers for stability.
+- Log parameter norm vs. gradient norm for each optimizer.
+
+---
+
+## 114. Embedding Space Is Dominated By Low-Level Statistics
+
+**Symptoms:**
+- PCA or t-SNE clusters reflect color, brightness, or length — not semantics.
+
+**Suggested Next Steps:**
+- Add style-invariant losses or cross-style contrastive training.
+- Use domain adversarial training to remove low-level factors.
+- Balance dataset by stratified sampling across confounds.
+
+---
+
+## 115. Representations Shift Over Epochs Without Improving Performance
+
+**Symptoms:**
+- Embeddings change (tracked via cosine sim, PCA, etc.), but validation accuracy or loss doesn’t improve.
+
+**Suggested Next Steps:**
+- Apply stability-promoting regularization (e.g., Temporal Consistency Loss).
+- Add EMA smoothing to stabilize representations.
+- Visualize class-wise or token-wise drift to localize the instability.
+
+---
+
+## 116. Multiple Augmented Views Collapse to the Same Point
+
+**Symptoms:**
+- Despite different views, embeddings end up nearly identical.
+
+**Suggested Next Steps:**
+- Increase augmentation strength, but diversify types (e.g., not just color + crop).
+- Add view-specific noise or stochastic depth.
+- Ensure contrastive or predictive loss compares only positive pairs, not self-matching.
+
+---
+
+## 117. Representations Encode Unintended Metadata (e.g., filename, sequence ID)
+
+**Symptoms:**
+- Clusters emerge based on metadata, not content.
+
+**Suggested Next Steps:**
+- Strip or randomize metadata at load time.
+- Add confounder adversarial head to remove leaked info.
+- Use information bottleneck or dropout on metadata paths.
+
+---
+
+## 118. Representation Collapse Only Happens With Gradient Accumulation
+
+**Symptoms:**
+- Training without accumulation is fine, but collapse appears when gradients are accumulated.
+
+**Suggested Next Steps:**
+- Reduce accumulation steps or scale learning rate per accumulation cycle.
+- Normalize loss per micro-batch, not macro-batch.
+- Track loss per step, not per epoch, to diagnose mismatch.
+
+---
+
+## 119. Loss Decreases on Synthetic Data but Not on Real Data
+
+**Symptoms:**
+- Strong learning signals on generated or proxy data, no generalization to real-world data.
+
+**Suggested Next Steps:**
+- Use domain adaptation loss (e.g., CORAL, MMD, domain confusion).
+- Blend synthetic and real with style transfer, cycle consistency, or shared encoder.
+- Add real-vs-synthetic discrimination loss to control blending.
+
+---
+
+## 120. Final Embeddings Lack Cluster Structure
+
+**Symptoms:**
+- All points are evenly distributed in space, no class or view-based clustering.
+
+**Suggested Next Steps:**
+- Add clustering loss (e.g., SwAV, DeepCluster).
+- Apply contrastive loss across hard positives and negatives.
+- Normalize embeddings to a hypersphere, then cluster.
 
 ---
 
