@@ -7,8 +7,6 @@ Perfect. Here are the **first 20 items (1–20)** in your specified Markdown for
 
 ---
 
-```markdown
-
 ## 1. Representation Rank is Low
 
 **Symptoms:**
