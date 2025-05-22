@@ -44,7 +44,7 @@ A compilation of over 1,000 LLM-generated potential issues and suggested next st
 **Suggested Next Steps:**
 - Add or strengthen variance regularization.
 - Introduce weak asymmetry (e.g., stop gradient, predictor MLP).
-- Delay EMA updates if using target networks.
+- Delay EMA (Exponential Moving Average) updates if using target networks.
 - Increase prediction horizon to reduce trivial matching.
 
 ---
@@ -236,7 +236,7 @@ A compilation of over 1,000 LLM-generated potential issues and suggested next st
 
 ---
 
-## 19. EMA Target Doesn’t Help
+## 19. EMA (Exponential Moving Average) Target Doesn’t Help
 
 **Symptoms:**
 - EMA-targeted representations don’t stabilize or improve.
@@ -1220,5 +1220,5 @@ A compilation of over 1,000 LLM-generated potential issues and suggested next st
 
 ---
 
-Many more entries are being prepared! ...
+More is in progress! Stay tuned!
 
