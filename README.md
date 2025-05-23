@@ -3016,6 +3016,605 @@ Aimed at supporting the systematic study and refinement of **self-supervised lea
 
 ---
 
+## 251. Pretrained Model Performs Worse Than Random Init on Certain Tasks
+
+**Symptoms:**
+- Downstream accuracy drops after pretraining, underperforms even untrained encoder.
+
+**Suggested Next Steps:**
+- Check for task mismatch: does pretraining induce wrong invariances?
+- Try frozen backbone transfer first, then fine-tune carefully.
+- Use task-aware augmentation filtering during pretraining.
+
+---
+
+## 252. Projector with Dropout Leads to Representation Drift Across Epochs
+
+**Symptoms:**
+- Latents fluctuate across epochs; instability traced to projector dropout.
+
+**Suggested Next Steps:**
+- Evaluate stability with/without dropout in projector at validation time.
+- Use dropout only during training, and log feature drift over time.
+- Try stochastic depth instead of dropout if needed for regularization.
+
+---
+
+## 253. Model Learns to Ignore Predictive Tokens
+
+**Symptoms:**
+- Masked token prediction or autoregression ignores certain positions.
+
+**Suggested Next Steps:**
+- Add token dropout or random token masking to force usage.
+- Penalize zero-gradient tokens (e.g., mask if never used).
+- Add auxiliary token importance prediction task.
+
+---
+
+## 254. Augmentation Leads to Over-Invariance to Useful Signal
+
+**Symptoms:**
+- Model becomes invariant to variations that should matter (e.g., color in leaf classification).
+
+**Suggested Next Steps:**
+- Redesign augmentation pipeline based on task relevance.
+- Add contrastive positives with small semantic variations (intra-class negatives).
+- Regularize with feature sensitivity loss across augmented views.
+
+---
+
+## 255. Projection Head Becomes Too Powerful and Overfits Pretext Task
+
+**Symptoms:**
+- Projector learns perfectly, encoder is weak or frozen.
+
+**Suggested Next Steps:**
+- Track gradients through encoder vs. projector to detect imbalance.
+- Apply stop-gradient or bottleneck inside projector.
+- Add invariance loss directly on encoder output.
+
+---
+
+## 256. Intermediate Representations Have High Redundancy, Final Do Not
+
+**Symptoms:**
+- Early layers are low-rank, final layers look high-rank but unstructured.
+
+**Suggested Next Steps:**
+- Add deep VC regularization across layers, not just final one.
+- Visualize rank profile across depth (layer-wise covariance rank).
+- Apply intermediate layer orthogonality or diversity constraints.
+
+---
+
+## 257. Representations Have High Cosine Similarity but Low Transferability
+
+**Symptoms:**
+- Aligned latents across views, but fail on downstream.
+
+**Suggested Next Steps:**
+- Add view-invariant semantic structure loss (e.g., cross-view class matching).
+- Replace alignment-only objective with pull–push style contrastive loss.
+- Monitor cosine similarity and class-separability jointly.
+
+---
+
+## 258. Low-Eigenvalue Latent Collapse Is Missed By Rank Monitoring
+
+**Symptoms:**
+- Full-rank covariance, but last 10–20 dimensions are near-zero variance.
+
+**Suggested Next Steps:**
+- Track eigenvalue spectrum flatness or entropy, not just rank.
+- Apply variance floor regularization (e.g., VICReg-style min std).
+- Weight low-variance dimension penalties higher.
+
+---
+
+## 259. Training Appears Stable Until Long Runs Introduce Collapse
+
+**Symptoms:**
+- Loss, accuracy stable for 100+ epochs, then collapse occurs.
+
+**Suggested Next Steps:**
+- Use periodic checkpoint comparison for latent drift detection.
+- Apply weight norm monitors, gradient explosion/collapse checks.
+- Add anti-collapse entropy loss that grows over time.
+
+---
+
+## 260. Model Scaling Causes Latent Overfitting to Batch Statistics
+
+**Symptoms:**
+- Larger models rely too heavily on batch composition (especially in BN-heavy pipelines).
+
+**Suggested Next Steps:**
+- Replace BatchNorm with GroupNorm or LayerNorm at scale.
+- Use cross-batch feature decorrelation.
+- Track latent shift across batch resamples and apply regularization.
+
+---
+
+## 261. One View in Contrastive Pair Has Consistently Higher Feature Norms
+
+**Symptoms:**
+- Augmented view A has much larger norms than view B across batches.
+
+**Suggested Next Steps:**
+- Normalize both views (F.normalize()) before similarity or loss computation.
+- Log and compare view-wise norms as a training diagnostic.
+- Add norm balancing loss to equalize representational energy between views.
+
+---
+
+## 262. Masking Strategy Causes Collapse in Masked Autoencoding
+
+**Symptoms:**
+- Too much masking leads to trivial reconstructions or zero outputs.
+
+**Suggested Next Steps:**
+- Reduce masking ratio or apply curriculum masking (start low, increase).
+- Use spatially diverse masking (e.g., block or variable-length).
+- Add unmasked token prediction or contrastive loss as a stabilizer.
+
+---
+
+## 263. Final Layer Attention Focuses Only on One Token (e.g., CLS)
+
+**Symptoms:**
+- Final attention maps show degenerate all-to-one behavior.
+
+**Suggested Next Steps:**
+- Add token diversity penalty (maximize attention entropy).
+- Visualize head-wise token interaction heatmaps.
+- Apply auxiliary attention distribution targets or structure loss.
+
+---
+
+## 264. Sample-Level Representations Drift Randomly Between Epochs
+
+**Symptoms:**
+- Same sample shows radically different embeddings across checkpoints.
+
+**Suggested Next Steps:**
+- Add temporal stability loss or checkpoint-wise cosine similarity regularizer.
+- Replace dropout with deterministic regularization (e.g., stochastic depth).
+- Smooth training trajectory using EMA on model weights or latents.
+
+---
+
+## 265. Multiple Inputs Map to Nearly Identical Embeddings
+
+**Symptoms:**
+- Different samples produce near-duplicate features (e.g., cosine sim > 0.99).
+
+**Suggested Next Steps:**
+- Increase input augmentation diversity.
+- Apply triplet loss or redundancy penalty between unrelated samples.
+- Detect and prevent this using false positive tracking in contrastive batches.
+
+---
+
+## 266. Early Epochs Fit Augmentations Instead of Content
+
+**Symptoms:**
+- Training loss drops, but representations cluster by augmentation type, not content.
+
+**Suggested Next Steps:**
+- Add augmentation confusion loss or adversarial augmentation prediction task.
+- Delay heavy augmentations until mid-training (augmentation curriculum).
+- Penalize cross-view clustering mismatch.
+
+---
+
+## 267. Feature Space Has Repeating Structures (e.g., mirrored clusters)
+
+**Symptoms:**
+- Clusters appear symmetric or duplicated across axes.
+
+**Suggested Next Steps:**
+- Add axis decorrelation loss or use whitening (e.g., VICReg-style).
+- Randomly rotate or shuffle axes during training to prevent hardcoded geometry.
+- Analyze cluster overlap via pairwise distance matrix.
+
+---
+
+## 268. Attention Heads Collapse to Same Pattern Across Layers
+
+**Symptoms:**
+- All heads output similar maps regardless of depth or input.
+
+**Suggested Next Steps:**
+- Add diversity loss across heads/layers (e.g., cosine or KL divergence).
+- Use per-head positional encoding bias.
+- Regularize heads using orthogonal initialization + dropout.
+
+---
+
+## 269. Representations Encode Unintended Spatial Features
+
+**Symptoms:**
+- Latents capture image borders, padding artifacts, or corner bias.
+
+**Suggested Next Steps:**
+- Randomize crop origin, padding method, and center alignment during augmentation.
+- Mask or reweight border regions in attention.
+- Add a confounder suppression loss for spatial artifacts.
+
+---
+
+## 270. Early Projection Layer Collapses While Deeper Layers Remain Diverse
+
+**Symptoms:**
+- First projection MLP layer has very low activation variance.
+
+**Suggested Next Steps:**
+- Apply residual or skip connection in projection head.
+- Use LayerNorm + GELU before and after this layer to improve flow.
+- Track per-layer feature variance, and reinitialize if collapse is detected.
+
+---
+
+## 271. Long-Sequence Model Overfits to Local Patterns Only
+
+**Symptoms:**
+- Model performs well on short-range tasks but fails at long dependencies.
+
+**Suggested Next Steps:**
+- Add long-span auxiliary tasks (e.g., next-chunk prediction).
+- Train with mixed-length sequences to force scale adaptability.
+- Use memory-enhanced architectures (e.g., recurrence, cache, attention pooling).
+
+---
+
+## 272. Model Overfits to Batch Layout or Shuffling Order
+
+**Symptoms:**
+- Slight changes in batch ordering reduce performance or change representations.
+
+**Suggested Next Steps:**
+- Enable drop-last in data loader and shuffle every epoch.
+- Add batch-level random perturbation (e.g., sample reindexing).
+- Track per-batch drift of global feature statistics.
+
+---
+
+## 273. Visual Model Relies on Textural Cues Instead of Shape or Structure
+
+**Symptoms:**
+- Fails when textures are shuffled or blurred, despite clear object outline.
+
+**Suggested Next Steps:**
+- Train with stylized augmentations or texture-shuffled images.
+- Add shape-consistency loss (e.g., segmentation-contrastive).
+- Evaluate with Stylized-ImageNet or similar benchmarks.
+
+---
+
+## 274. Attention Maps Collapse into Aliased Patterns (e.g., stripes or grids)
+
+**Symptoms:**
+- Visualizations show checkerboards or repeating structures in attention.
+
+**Suggested Next Steps:**
+- Add spatial positional noise or randomized patching.
+- Regularize attention spectrum using Fourier-domain diversity loss.
+- Replace absolute positional encoding with continuous embeddings.
+
+---
+
+## 275. Masked Tokens Are Ignored During Reconstruction
+
+**Symptoms:**
+- Model learns to reconstruct only visible tokens, not masked ones.
+
+**Suggested Next Steps:**
+- Increase mask ratio gradually via curriculum.
+- Add contrastive or codebook prediction loss for masked positions.
+- Penalize zero activations on masked token decoder path.
+
+---
+
+## 276. Projection Head Output Norms Explode Near Convergence
+
+**Symptoms:**
+- Norms of projected latents grow rapidly in final epochs.
+
+**Suggested Next Steps:**
+- Track per-step feature norm of the projector output.
+- Add L2 norm penalty or apply unit-normalization.
+- Introduce norm-aware learning rate decay in final epochs.
+
+---
+
+## 277. Positional Embeddings Create Unnatural Token Clustering
+
+**Symptoms:**
+- Tokens with nearby positions cluster tightly in feature space, despite different content.
+
+**Suggested Next Steps:**
+- Switch to relative or rotary position encoding.
+- Add token disentanglement loss for similar-position tokens.
+- Visualize positional similarity matrix in latent space.
+
+---
+
+## 278. EMA Encoder Lags Too Far Behind Online Model
+
+**Symptoms:**
+- Target encoder cannot keep up with fast-evolving online encoder.
+
+**Suggested Next Steps:**
+- Use cosine schedule for EMA decay (start low, increase to 0.99+).
+- Re-initialize EMA with online model every N epochs.
+- Evaluate lagged alignment loss to tune decay rate.
+
+---
+
+## 279. Patch-Based Models Fail When Spatial Layout is Slightly Shifted
+
+**Symptoms:**
+- Positional offset or pad changes drastically hurt output.
+
+**Suggested Next Steps:**
+- Use translation-invariant training (e.g., random crop + paste at center).
+- Regularize using spatial consistency loss or multi-view matching.
+- Test with padded vs. unpadded consistency checks.
+
+---
+
+## 280. Final Epochs Learn to “Undo” Augmentations Instead of Learning Robustness
+
+**Symptoms:**
+- Model memorizes augmentation reversal tricks (e.g., rotation, cropping).
+
+**Suggested Next Steps:**
+- Add augmentation-invariant loss (e.g., anchor–positive from different views).
+- Randomize or combine augmentations more aggressively.
+- Penalize predictability of augmentation parameters (adversarial masking).
+
+---
+
+## 281. Alignment Objective Creates Collapse to the Mean
+
+**Symptoms:**
+- Features from all views or samples converge to a shared average direction.
+
+**Suggested Next Steps:**
+- Introduce repulsion or contrastive components to balance alignment.
+- Apply decorrelation loss (e.g., VICReg’s covariance or Barlow Twins).
+- Monitor pairwise feature cosine similarity across non-matching views.
+
+---
+
+## 282. High-Frequency Input Features Are Suppressed in Deeper Layers
+
+**Symptoms:**
+- Early layers detect edges or textures, but deeper features ignore detail.
+
+**Suggested Next Steps:**
+- Add frequency-preserving skip connections (e.g., wavelet-based or dilated fusion).
+- Use multi-resolution auxiliary tasks (e.g., contrastive loss at multiple scales).
+- Apply spectral diversity regularization in the latent space.
+
+---
+
+## 283. Multiple Views Coalesce into a Single Cluster
+
+**Symptoms:**
+- All views of a sample (strong/weak) collapse to nearly identical latent vector.
+
+**Suggested Next Steps:**
+- Encourage view diversity via view-specific heads or dual-space mapping.
+- Introduce inter-view repulsion loss (force non-identical views apart).
+- Reduce augmentation strength if collapse is due to trivial transformations.
+
+---
+
+## 284. Batch Similarity Leaks into Representation
+
+**Symptoms:**
+- Samples within the same batch have more similar embeddings than across batches, regardless of content.
+
+**Suggested Next Steps:**
+- Shuffle batches more aggressively and evaluate batch-effect metrics.
+- Normalize features across multiple batches (cross-batch whitening).
+- Add inter-batch contrastive sampling (not just within-batch).
+
+---
+
+## 285. Decoder Introduces Representational Bias in Masked Architectures
+
+**Symptoms:**
+- Decoder architecture leads to trivial reconstructions that skew upstream representations.
+
+**Suggested Next Steps:**
+- Train decoder separately or apply stop-gradient at decoder input.
+- Reduce decoder depth and increase masking ratio.
+- Add auxiliary representation-preserving loss before decoder.
+
+---
+
+## 286. Representations Are Sensitive to Random Mask Locations
+
+**Symptoms:**
+- Slightly different masked token selections produce wildly different latents.
+
+**Suggested Next Steps:**
+- Apply mask consistency loss: multiple masks from same input should yield similar rep.
+- Use smooth masking (Gaussian dropout or token fading).
+- Evaluate with fixed-mask probes to measure sensitivity.
+
+---
+
+## 287. Patch Representations Are Too Correlated Within the Same Sample
+
+**Symptoms:**
+- All tokens from an image have nearly identical embeddings.
+
+**Suggested Next Steps:**
+- Apply token decorrelation loss (minimize intra-sample cosine similarity).
+- Add patch-level contrastive loss across space and time.
+- Train with partial occlusion and force token-level diversity.
+
+---
+
+## 288. Cross-View Representations Have Misaligned Feature Axes
+
+**Symptoms:**
+- Same content across views aligns poorly in latent space dimensions.
+
+**Suggested Next Steps:**
+- Use shared projection heads with axis alignment constraints.
+- Apply Procrustes regularization between projected feature bases.
+- Add PCA-consistency loss: align dominant axes over views.
+
+---
+
+## 289. Masked Inputs Encourage Overemphasis on Unmasked Tokens
+
+**Symptoms:**
+- Model puts too much representational weight on unmasked parts.
+
+**Suggested Next Steps:**
+- Train with mask drop — randomly remove unmasked info too.
+- Penalize activation magnitude discrepancy between masked/unmasked tokens.
+- Use uniform masking across samples to reduce bias.
+
+---
+
+## 290. Final Layer Drift Cancels Representational Gains from Previous Epochs
+
+**Symptoms:**
+- Validation accuracy or feature quality improves, then regresses suddenly.
+
+**Suggested Next Steps:**
+- Track EMA of final layer weights, not just encoder.
+- Add prediction consistency loss between previous/future states.
+- Use layer-wise learning rate decay to freeze or slow deeper layers.
+
+---
+
+## 291. Convolutional Kernels Are Reused Across Filters Without Meaningful Variation
+
+**Symptoms:**
+- Filters in a conv layer are copies or scalar multiples of each other.
+
+**Suggested Next Steps:**
+- Add filter diversity loss (e.g., pairwise orthogonality or cosine dissimilarity).
+- Use group convolutions or depthwise separable convolutions to decouple features.
+- Periodically re-initialize duplicate kernels mid-training.
+
+---
+
+## 292. Multimodal Fusion Layer Collapses to One Dominant Modality
+
+**Symptoms:**
+- Features from text/image/audio are ignored except one.
+
+**Suggested Next Steps:**
+- Add modality dropout to force reliance on all views.
+- Apply modality balance loss — normalize representation contribution per modality.
+- Use cross-attention fusion instead of concatenation or averaging.
+
+---
+
+## 293. Positional Encoding Leaks Sample Identity in Self-Supervised Tasks
+
+**Symptoms:**
+- Model memorizes fixed position patterns, indirectly revealing the sample.
+
+**Suggested Next Steps:**
+- Add position noise (jitter or dropout).
+- Use relative positional embeddings instead of absolute ones.
+- Randomize sequence length and offset to suppress overfitting.
+
+---
+
+## 294. Prototype-Based Models Collapse to Single-Class Dominance
+
+**Symptoms:**
+- All samples gravitate toward a few prototypes, ignoring others.
+
+**Suggested Next Steps:**
+- Regularize prototype usage with soft entropy loss or repulsion penalties.
+- Initialize prototypes using KMeans++ or orthogonal vectors.
+- Resample or replace unused prototypes during training.
+
+---
+
+## 295. Semantic Drift Occurs in Long Training Runs
+
+**Symptoms:**
+- Cluster centers or class boundaries slowly shift despite stable accuracy.
+
+**Suggested Next Steps:**
+- Log embedding drift over time using cosine or center distance metrics.
+- Use EMA clustering or center smoothing to stabilize decision regions.
+- Freeze latent geometry periodically and re-align with a probe head.
+
+---
+
+## 296. Patch-Based Models Overfit to Grid Layout
+
+**Symptoms:**
+- Slight jitter or patch shuffle significantly degrades performance.
+
+**Suggested Next Steps:**
+- Add random crop-to-patch misalignment during training.
+- Train with patch order prediction task.
+- Apply patch permutation or masked jigsaw as a regularizer.
+
+---
+
+## 297. Latent Representations Predict View Identity Instead of Content
+
+**Symptoms:**
+- SSL model can easily recover which augmentation was applied.
+
+**Suggested Next Steps:**
+- Penalize view classification accuracy via auxiliary adversarial task.
+- Use uniform augmentation sampling to remove consistent view signals.
+- Add view confusion loss to force content-invariance.
+
+---
+
+## 298. Self-Supervised Features Drift When Transitioning to Supervised Finetuning
+
+**Symptoms:**
+- Activations change radically after adding classification head.
+
+**Suggested Next Steps:**
+- Add frozen probe head during fine-tuning to stabilize encoder.
+- Use gradual unfreezing of encoder layers.
+- Apply feature distillation loss from pretraining phase to preserve geometry.
+
+---
+
+## 299. Last Few Epochs Introduce Sudden Class Collapse
+
+**Symptoms:**
+- Per-class accuracy or centroid spread drops suddenly at end of training.
+
+**Suggested Next Steps:**
+- Monitor class-wise variance and center drift.
+- Apply early stopping with latent stability condition, not just loss plateau.
+- Add anti-collapse loss that activates late (e.g., increasing VC strength).
+
+---
+
+## 300. Convergence Is Blocked by Overly Sharp Decision Boundaries
+
+**Symptoms:**
+- Accuracy plateaus, and misclassifications occur near class borders.
+
+**Suggested Next Steps:**
+- Add margin-based loss (e.g., ArcFace, cosine margin).
+- Smooth predictions with temperature scaling.
+- Use mixup or manifold mixup to blur decision transitions.
+
+---
 
 More is in progress! Stay tuned!
 
