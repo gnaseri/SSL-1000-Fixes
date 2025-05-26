@@ -7694,6 +7694,1205 @@ Aimed at supporting the systematic study and refinement of **self-supervised lea
 
 ---
 
+## 601. Encoder and Projection Head Drift in Representational Purpose
+
+**Symptoms:**
+- Encoder learns general features; projection head warps them toward loss-specific biases.
+
+**Suggestions:**
+- Add encoder-head alignment loss (e.g., cosine similarity pre/post projection).
+- Freeze projection head periodically to prevent excessive warping.
+- Introduce semantic probes directly on encoder outputs to monitor drift.
+
+---
+
+## 602. Augmentation Causes Prototype Drift in Clustering-Based Models
+
+**Symptoms:**
+- Clusters shift during training not due to data, but due to aggressive view changes.
+
+**Suggestions:**
+- Stabilize prototypes using EMA or cluster momentum updates.
+- Add view-anchored prototype regularization (align cluster centers across views).
+- Monitor cluster center cosine similarity over augment schedules.
+
+---
+
+## 603. Spatial Bias From Training Layout Leaks Into Latent Space
+
+**Symptoms:**
+- Top-left vs. bottom-right input zones lead to latent separation, unrelated to semantics.
+
+**Suggestions:**
+- Use location randomization or shift jitter in input pipeline.
+- Penalize spatial-region latent divergence (e.g., cosine sim by quadrant).
+- Train with attention re-weighting to reduce edge/corner dominance.
+
+---
+
+## 604. Label-Free Collapse Detection Fails in Presence of Normalized Latents
+
+**Symptoms:**
+- Collapse isn’t caught because cosine similarity stays near 0.5 despite saturation.
+
+**Suggestions:**
+- Add off-diagonal covariance metrics or entropy of latent norms.
+- Log pre-normalization feature rank for raw-space health.
+- Use representation determinant or volume metrics as collapse checks.
+
+---
+
+## 605. Token Collapse Affects Early Layers Only (Not Visible in Final Embeddings)
+
+**Symptoms:**
+- Final output looks healthy, but mid-layer tokens are flat or redundant.
+
+**Suggestions:**
+- Add layer-wise token diversity loss (e.g., per-layer VC regularization).
+- Visualize token variance by depth and patch index.
+- Introduce shallow-layer reconstruction loss to encourage information flow.
+
+---
+
+## 606. Long Sequence Representations Collapse in the Middle of Context
+
+**Symptoms:**
+- Tokens near the center of a long input sequence collapse while ends remain expressive.
+
+**Suggestions:**
+- Use context-aware positional encodings or attention rebalancing.
+- Penalize token norm asymmetry across position.
+- Add center-focused probing task (e.g., masked modeling at sequence center).
+
+---
+
+## 607. Feature Distribution Becomes Mode-Centered, Losing Inter-Class Spread
+
+**Symptoms:**
+- Features concentrate around mode centers but lack global separation.
+
+**Suggestions:**
+- Add global variance-preserving loss (e.g., encourage eigenvalue entropy).
+- Introduce repulsion loss across top-k class prototypes.
+- Visualize class-wise scatter plots and penalize overlap zones.
+
+---
+
+## 608. Soft Assignment Models Flatten Entropy Late in Training
+
+**Symptoms:**
+- Softmax outputs from prototype heads become uniformly high-entropy, not confident.
+
+**Suggestions:**
+- Use entropy sharpening regularizer or temperature decay.
+- Apply confidence-weighted assignment updates.
+- Detect and refresh dead clusters via assignment histogram flattening.
+
+---
+
+## 609. LayerNorm in Projection Head Obscures Intra-Class Collapse
+
+**Symptoms:**
+- Features look well-distributed post-LayerNorm but collapse in raw projection space.
+
+**Suggestions:**
+- Add L2-norm or rank loss pre-normalization in projection.
+- Train alternate heads with and without normalization for probing.
+- Log class-wise raw distance metrics before norm layers.
+
+---
+
+## 610. Sequential Data Models Collapse When Using Uniform Token Embeddings
+
+**Symptoms:**
+- Shared embeddings across time steps lead to entangled or identical token outputs.
+
+**Suggestions:**
+- Introduce time-specific token encoding or position-aware embeddings.
+- Use temporal contrastive tasks to differentiate step-wise representations.
+- Penalize token similarity within samples across time.
+
+---
+
+## 611. Sequential Models Learn Temporal Shortcuts Instead of Semantic Transitions
+
+**Symptoms:**
+- Model predicts next step using fixed offsets or repetition, not meaningful progression.
+
+**Suggestions:**
+- Add semantic drift loss between adjacent time steps to enforce content change.
+- Mask or shuffle temporal windows to break easy copy signals.
+- Introduce cross-segment prediction tasks using distant pairs.
+
+---
+
+## 612. Decoder Overfits to Masking Pattern Instead of Reconstructing Content
+
+**Symptoms:**
+- Masked autoencoders learn to detect mask geometry rather than encode real structure.
+
+**Suggestions:**
+- Randomize mask shapes and scales per sample (e.g., checkerboard, blob).
+- Add mask-invariance loss between predictions of overlapping masked views.
+- Penalize decoder attention bias toward borders of masked regions.
+
+---
+
+## 613. Mixed Batches from Different Augmentation Pipelines Interfere in Latent Space
+
+**Symptoms:**
+- Batch norm or projection layers align features across incompatible view types.
+
+**Suggestions:**
+- Train with batch-consistent augmentation sets.
+- Use augmentation-aware batch norm or per-pipeline heads.
+- Track inter-view latent alignment divergence within batch.
+
+---
+
+## 614. Cluster Assignment Head Shows No Loss Signal, But Clusters Are Degenerate
+
+**Symptoms:**
+- Clustering loss converges while all prototypes collapse or become identical.
+
+**Suggestions:**
+- Add assignment entropy penalty or balanced usage constraint.
+- Track prototype usage histogram and enforce uniform prior.
+- Apply orthogonal prototype re-initialization when degeneracy is detected.
+
+---
+
+## 615. Data From Two Subpopulations Creates Entangled Latent Manifolds
+
+**Symptoms:**
+- Features from two known groups overlap without clear separation, hurting transfer.
+
+**Suggestions:**
+- Add group-aware alignment penalty (e.g., adversarial group disentanglement).
+- Use subpopulation prototypes and train to preserve inter-group margin.
+- Train with contrastive loss between group centroids as a proxy label.
+
+---
+
+## 616. Temporal Contrastive Alignment Collapses on Repeating Patterns
+
+**Symptoms:**
+- Audio/video representations collapse when structure repeats frequently (e.g., loops, silence).
+
+**Suggestions:**
+- Add pattern-aware contrastive views (avoid aligned loops).
+- Penalize temporal self-similarity in latents across windowed shifts.
+- Use multi-resolution alignment heads to break symmetry.
+
+---
+
+## 617. LayerNorm in Shallow Encoder Layers Obscures Collapse From Batch Imbalance
+
+**Symptoms:**
+- Representations collapse when some batches lack diversity, but this is masked by normalization.
+
+**Suggestions:**
+- Use GroupNorm or instance norm in shallow layers to reveal early collapse.
+- Add batch diversity tracking (e.g., rank, entropy, class histogram).
+- Freeze shallow normalization layers and audit pre-norm feature stats.
+
+---
+
+## 618. Representation Becomes Highly Directional (Hyperplane Bias)
+
+**Symptoms:**
+- Latents point in one or few directions, reducing angular discrimination.
+
+**Suggestions:**
+- Add angular decorrelation loss (e.g., cosine orthogonality among samples).
+- Introduce directional dropout in latent space (random rotation masks).
+- Visualize PCA + angle histograms of representations over training.
+
+---
+
+## 619. Fine-Tuning With Few Classes Causes Global Representation Re-Centering
+
+**Symptoms:**
+- Latents from pretraining shift toward new class centers, breaking old generalization.
+
+**Suggestions:**
+- Apply center preservation loss using frozen pretraining anchors.
+- Use adapter layers for downstream task, freezing main encoder.
+- Log class-wise drift distance between pre and post fine-tuning.
+
+---
+
+## 620. Pretraining With Limited Tokens Causes Token-Specific Overfitting
+
+**Symptoms:**
+- Patch or word tokens memorize frequent patterns, fail on new or rare contexts.
+
+**Suggestions:**
+- Increase token diversity via shuffled masking or multi-scale sampling.
+- Add token dropout and hard-negative token mining.
+- Train auxiliary head to predict token rarity and apply contrastive scaling.
+
+---
+
+## 621. Adaptive Masking Causes Feature Drift Toward Frequently Visible Tokens
+
+**Symptoms:**
+- Frequently unmasked tokens dominate representation learning, marginalizing rare ones.
+
+**Suggestions:**
+- Track token visibility histogram and reweight rare patches.
+- Apply uniform masking schedule across training to equalize exposure.
+- Add token-wise balancing loss to regularize latent usage distribution.
+
+---
+
+## 622. Latent Mixing Augmentations Induce Inter-Class Manifold Collapse
+
+**Symptoms:**
+- Mixup, CutMix, or latent interpolation causes classes to converge rather than spread.
+
+**Suggestions:**
+- Use mixup-aware contrastive loss that preserves class boundaries.
+- Add entropy penalty on mixed-class latent overlap.
+- Train auxiliary head to reconstruct class proportions in mixed samples.
+
+---
+
+## 623. Probes Show High Accuracy on Uninformative Features (Overfit Interpretation)
+
+**Symptoms:**
+- Linear probe performs well, but latent features are actually degenerate or shallow.
+
+**Suggestions:**
+- Add nonlinear probing head to detect deeper structure health.
+- Monitor probe gradient norms and weight entropy.
+- Visualize t-SNE/PCA before and after projection to audit meaningfulness.
+
+---
+
+## 624. Projection Head Fails to Update Even With Encoder Drift
+
+**Symptoms:**
+- Encoder changes while projection head stays static, leading to head collapse.
+
+**Suggestions:**
+- Use cosine sim checkpoint drift metric to detect encoder-head mismatch.
+- Add gradient magnification or head-only optimizer restart.
+- Re-initialize head weights if cosine similarity drops below threshold.
+
+---
+
+## 625. Sequence Models Fail at Temporal Boundaries
+
+**Symptoms:**
+- Representations collapse at sequence start/end tokens during long-context training.
+
+**Suggestions:**
+- Add boundary-focused auxiliary loss (e.g., start/end prediction).
+- Mask sequence ends dynamically to expose interior patterns.
+- Penalize token norm underflow or similarity collapse near edges.
+
+---
+
+## 626. Token Split by View (e.g., top/bottom, left/right) Causes Mode-Specific Collapse
+
+**Symptoms:**
+- Representations from different spatial halves collapse into orthogonal or separable modes.
+
+**Suggestions:**
+- Align spatially split views with shared latent anchor loss.
+- Add cross-region contrastive loss to bind token halves.
+- Apply view inversion consistency loss (left-right or top-bottom swap).
+
+---
+
+## 627. Projection Head Aligns Features Without Preserving Category Semantics
+
+**Symptoms:**
+- Features match across views but do not encode useful class structure.
+
+**Suggestions:**
+- Train with triangular semantic loss (view–view–class anchor).
+- Add semantic contrastive probe head for latent–label alignment check.
+- Introduce class-pulled prototype vectors during alignment training.
+
+---
+
+## 628. Long-Context Models Collapse Representations at Memory Token Positions
+
+**Symptoms:**
+- Memory/recurrent tokens (e.g., Transformer memory) dominate latent space with low variance.
+
+**Suggestions:**
+- Penalize token-specific overactivation in memory embeddings.
+- Use memory-slot dropout or memory-normalized attention.
+- Add cross-memory-token decorrelation loss.
+
+---
+
+## 629. Shared Encoder Fails in Task-Split Setting (e.g., pretrain on image, fine-tune on audio)
+
+**Symptoms:**
+- Features trained on one modality interfere with representations for another.
+
+**Suggestions:**
+- Train with modality adapters or side-path heads.
+- Apply modality disentanglement loss in shared layers.
+- Use modality-aware normalization (e.g., FiLM conditioning).
+
+---
+
+## 630. Multi-Head Architectures Suffer from Head Interference During Class Transfer
+
+**Symptoms:**
+- One head learns target classes while others degrade or co-adapt to same space.
+
+**Suggestions:**
+- Add inter-head orthogonality loss on output or feature maps.
+- Use head dropout during multi-head optimization.
+- Train heads with per-class label sampling to isolate learning signal.
+
+---
+
+## 631. View Inversion Causes Latent Collapse Without Loss Change
+
+**Symptoms:**
+- Flipped or rotated views cause features to collapse, despite stable training loss.
+
+**Suggestions:**
+- Add inversion-aware contrastive loss (e.g., rotation-stabilized cosine sim).
+- Introduce view prediction auxiliary head to enforce distinct alignment per transformation.
+- Penalize latent flatness across view transformations using KL divergence or entropy.
+
+---
+
+## 632. Multi-Task Training Suppresses Feature Variance Across Tasks
+
+**Symptoms:**
+- Each task learns, but combined training reduces total latent dimensionality.
+
+**Suggestions:**
+- Add per-task VC loss to preserve task-specific feature spread.
+- Use task-specific heads with shared encoder + gated adapters.
+- Monitor task-conditioned feature rank per epoch.
+
+---
+
+## 633. Pseudo-Alignment of Paired Views Plateaus, But Features Remain Unusable
+
+**Symptoms:**
+- Positive pairs align (high cosine sim), yet downstream accuracy remains low.
+
+**Suggestions:**
+- Add discriminative loss orthogonal to alignment (e.g., classification, triplet).
+- Use semantic-aware latent probe to detect align-but-collapse cases.
+- Periodically reset or perturb aligned vectors to detect trivialization.
+
+---
+
+## 634. Scale-Up in Model or Batch Size Triggers Shortcut Collapse
+
+**Symptoms:**
+- Larger model/batch converges faster but learns non-semantic patterns (e.g., texture).
+
+**Suggestions:**
+- Apply semantic supervision early (e.g., self-labeling, jigsaw, masked prediction).
+- Add shortcut pattern detection loss (e.g., via edge/texture filtering).
+- Use lower LR warmup schedule in large model regime.
+
+---
+
+## 635. Feature Drift Appears Only Under Mixed Resolution Inputs
+
+**Symptoms:**
+- Low- and high-resolution inputs map to different regions in latent space.
+
+**Suggestions:**
+- Add resolution-contrastive loss between high and low input branches.
+- Use shared projection heads with resolution normalization.
+- Monitor cosine sim and norm shift per resolution bucket.
+
+---
+
+## 636. Shared Tokens Collapse in Multi-View Hierarchical Architectures
+
+**Symptoms:**
+- Shared or pooled summary tokens collapse across views regardless of input diversity.
+
+**Suggestions:**
+- Train with per-view token discrimination in attention layers.
+- Add token partition contrastive loss to maintain diversity.
+- Use layer-specific summary tokens rather than shared ones.
+
+---
+
+## 637. Representation Collapse Happens Only After Gradient Clipping Events
+
+**Symptoms:**
+- Features collapse shortly after frequent gradient norm clipping begins.
+
+**Suggestions:**
+- Increase gradient clipping threshold and track frequency.
+- Normalize clipping across model regions (e.g., scale by layer norm).
+- Add gradient flow monitor with alarms on clipping-induced saturation.
+
+---
+
+## 638. Embedding Norms Drift Non-Monotonically Across Epochs
+
+**Symptoms:**
+- Representation norms rise, collapse, rise again — hard to interpret or stabilize.
+
+**Suggestions:**
+- Monitor norm trajectories for encoder, head, and projection separately.
+- Add EMA norm penalty or temporal smoothing loss on feature magnitudes.
+- Normalize latents before loss but log unnormalized trends.
+
+---
+
+## 639. Representations Fragment Under Spatial Transformer Blocks
+
+**Symptoms:**
+- Token spatial remapping causes previously aligned regions to drift apart.
+
+**Suggestions:**
+- Train with location-paired contrastive loss (patch i in view A ~ patch i in view B).
+- Use position-guided attention masks during early epochs.
+- Penalize cross-patch feature divergence post-transformation.
+
+---
+
+## 640. Model Trains Properly on Uniform Samples But Collapses on Real-World Data
+
+**Symptoms:**
+- Synthetic, balanced datasets work; real datasets cause mode collapse.
+
+**Suggestions:**
+- Add distribution shift regularization (e.g., sample reweighting, batch smoothing).
+- Use real-data-anchored prototypes or latent anchors per class.
+- Train with auxiliary heads only on real-world data to detect misalignment early.
+
+---
+
+## 641. Sequence Truncation Causes Early Token Collapse in Transformers
+
+**Symptoms:**
+- Tokens near the beginning of truncated inputs collapse more than later tokens.
+
+**Suggestions:**
+- Use randomized truncation offsets or sliding input windows.
+- Add token-position dropout to decorrelate absolute position usage.
+- Train with truncation prediction head to make collapsed tokens more useful.
+
+---
+
+## 642. Dropout Applied Differently Across Branches Causes Asymmetry Collapse
+
+**Symptoms:**
+- Online and target branches drift due to view-specific dropout randomness.
+
+**Suggestions:**
+- Sync dropout masks across views when feasible.
+- Use deterministic or frozen dropout during contrastive pairing.
+- Penalize dropout-induced cosine drift between view latents.
+
+---
+
+## 643. Softmax-Based Heads Saturate Early and Flatten Latent Geometry
+
+**Symptoms:**
+- Latents cluster tightly around head prototypes, hurting inter-class spread.
+
+**Suggestions:**
+- Reduce softmax confidence with temperature annealing or label smoothing.
+- Add prototype repulsion loss (force prototypes apart).
+- Replace softmax with cosine-based margin heads for smoother geometry.
+
+---
+
+## 644. Using Repeated View Pairs (e.g., A1–A2, A1–A2…) Encourages Trivial Alignment
+
+**Symptoms:**
+- Model learns a shortcut from view repetition rather than content alignment.
+
+**Suggestions:**
+- Shuffle view combinations across training (A1–A2, A2–A3, A3–A1, etc.).
+- Penalize latent pair predictability using view origin prediction loss.
+- Use tri-view contrast (e.g., A1, A2, A3) instead of bi-view.
+
+---
+
+## 645. Decoder Memorizes Latent Space Instead of Learning View-Invariant Recovery
+
+**Symptoms:**
+- Reconstruction quality is high but representations are unusable or shallow.
+
+**Suggestions:**
+- Add latent perturbation during decoding to encourage generalization.
+- Penalize decoder weight norm saturation or collapse.
+- Train decoder with latent-agnostic auxiliary task (e.g., masked region classification).
+
+---
+
+## 646. Changing Input Resolution Mid-Training Causes Latent Drift
+
+**Symptoms:**
+- Pretrained models fine-tuned at new resolution lose semantic consistency.
+
+**Suggestions:**
+- Use multi-resolution pretraining with resolution-adaptive heads.
+- Add resolution alignment loss across upsampled/downsampled pairs.
+- Log feature shift by resolution delta to detect instability.
+
+---
+
+## 647. View-Specific Tokens (e.g., CLS per view) Collapse to Similar Vectors
+
+**Symptoms:**
+- Tokens intended to summarize views collapse across views and lose diversity.
+
+**Suggestions:**
+- Apply view-specific token decorrelation loss.
+- Use contrastive loss across CLS tokens only, without pooled patches.
+- Add semantic anchor probing to evaluate view-token distinctiveness.
+
+---
+
+## 648. Batch-Level Collapse Occurs During Distributed Training with Inconsistent View Count
+
+**Symptoms:**
+- Some processes or devices receive fewer views or augment variants, skewing training.
+
+**Suggestions:**
+- Enforce uniform view generation across devices.
+- Log per-device feature statistics and latent rank to detect imbalance.
+- Resample batches dynamically to ensure view diversity parity.
+
+---
+
+## 649. Prototypes Merge Under Strong Centering Loss or EMA Update
+
+**Symptoms:**
+- Cluster prototypes become indistinguishable under heavy moving average smoothing.
+
+**Suggestions:**
+- Decay EMA update rate over time instead of fixing it.
+- Add orthogonal repulsion loss between prototype weights.
+- Detect prototype merging with assignment overlap matrix.
+
+---
+
+## 650. Latent Representations Collapse When Learning Across Input Aspect Ratios
+
+**Symptoms:**
+- Models trained on square images collapse when given wide or tall variants.
+
+**Suggestions:**
+- Train with aspect-ratio-aware positional encodings.
+- Add aspect-ratio regularization loss to encourage latent alignment across shapes.
+- Monitor cosine similarity per aspect ratio bucket.
+
+---
+
+## 651. Frozen Tokens Retain Initialization Bias and Block Representation Flow
+
+**Symptoms:**
+- Tokens or positional embeddings frozen for stability retain original patterns and dominate output.
+
+**Suggestions:**
+- Track activation contribution of frozen tokens during forward passes.
+- Use partial reinitialization or warmup rescaling for frozen components.
+- Add residual noise or attention dropout to suppress frozen token dominance.
+
+---
+
+## 652. View-Masked Tokens Cause Redundant Representations Across Context
+
+**Symptoms:**
+- Masked tokens become indistinguishable across different views or locations.
+
+**Suggestions:**
+- Add context-aware masking schemes (e.g., non-overlapping regions per view).
+- Train with token-specific contrastive alignment (e.g., token 5-A vs token 5-B).
+- Penalize token collapse across augmented views using L2 or cosine spread loss.
+
+---
+
+## 653. Self-Distillation Anchors Over-Constrain Feature Evolution
+
+**Symptoms:**
+- Student model overly mimics teacher prototypes, failing to learn new structure.
+
+**Suggestions:**
+- Use scheduled anchor decay (reduce teacher influence over time).
+- Add student innovation loss (e.g., representation entropy or variance boost).
+- Train with cross-teacher mixing (distill from multiple checkpoints).
+
+---
+
+## 654. Strong Class Tokens Dominate Latent Alignment Across All Samples
+
+**Symptoms:**
+- Frequent or overrepresented classes skew representations for unrelated inputs.
+
+**Suggestions:**
+- Add class balancing loss or per-class prototype variance equalization.
+- Apply alignment dropout during class-token supervision.
+- Visualize latent norm or class mean overlap and penalize overdominant vectors.
+
+---
+
+## 655. Representation Collapse Occurs in Modality-Specific Path of Multimodal Models
+
+**Symptoms:**
+- One encoder (e.g., vision, audio) collapses despite other modality being stable.
+
+**Suggestions:**
+- Apply modality-wise VC loss and monitor each branch independently.
+- Introduce cross-modal decorrelation loss to prevent interference.
+- Add shared latent anchor that aligns both modalities without forcing uniformity.
+
+---
+
+## 656. Shared Tokens in Transformer Architectures Collapse After Positional Drift
+
+**Symptoms:**
+- Shared tokens (e.g., CLS, BOS) degenerate after temporal or spatial shift exposure.
+
+**Suggestions:**
+- Train with token tracking probes across augmentations.
+- Use multi-anchor strategy (e.g., multiple CLS tokens per location subset).
+- Add token-specific dropout and penalize token drift across views.
+
+---
+
+## 657. Cosine Similarity Remains High, But Representation Rank Shrinks
+
+**Symptoms:**
+- Alignment loss looks good, but the latent matrix becomes low-rank over time.
+
+**Suggestions:**
+- Track rank and condition number of latent features.
+- Add rank-aware decorrelation loss (e.g., VICReg variance penalty).
+- Visualize eigenvalue spectrum and penalize long-tail flattening.
+
+---
+
+## 658. Multimodal Representation Entangles Modalities Without Preserving Structure
+
+**Symptoms:**
+- Shared space merges features from both domains but loses individual modality integrity.
+
+**Suggestions:**
+- Add modality-reconstruction heads (e.g., recover image from joint space).
+- Use orthogonal subspaces or modality-specific projection layers before fusion.
+- Penalize latent drift from modality anchors (i.e., deviation from pre-fusion state).
+
+---
+
+## 659. Late-Phase Collapse Is Triggered by Loss Weight Rebalancing
+
+**Symptoms:**
+- Tuning one loss component (e.g., VC or decoder) late in training leads to instability.
+
+**Suggestions:**
+- Gradually anneal loss weights with decay schedules, not sudden change.
+- Monitor loss-specific gradient flow to detect overcompensation.
+- Use frozen baseline branch to compare new latent direction vs. prior training.
+
+---
+
+## 660. Contrastive Loss Encourages Alignment But Discards Semantic Clustering
+
+**Symptoms:**
+- Views align perfectly but samples do not group meaningfully by class or content.
+
+**Suggestions:**
+- Add clustering regularization (e.g., prototype alignment, supervised SimCLR variants).
+- Train with semantic center drift loss to retain class anchors.
+- Combine local alignment + global clustering into joint objective.
+
+---
+
+## 661. Late-Stage View Mirroring Causes Trivial Solutions
+
+**Symptoms:**
+- Representations across views become mirror images (e.g., negative or rotated) rather than semantically aligned.
+
+**Suggestions:**
+- Penalize view-to-view latent inversion (e.g., cosine sim < 0 or large L2 norm).
+- Add triplet loss using original and inverted views.
+- Train with inversion-consistency loss: same output for mirrored inputs.
+
+---
+
+## 662. Auxiliary Tasks Dominate Training Signal and Suppress Representational Diversity
+
+**Symptoms:**
+- Masking, jigsaw, or decoding tasks overfit, leading to low-rank latent space.
+
+**Suggestions:**
+- Use adaptive loss weighting (e.g., dynamic task weight decay).
+- Log VC loss vs. auxiliary loss balance across training.
+- Temporarily freeze auxiliary heads and track latent rank recovery.
+
+---
+
+## 663. Bootstrapped Models (e.g., BYOL, DINO) Lose Asymmetry Over Time
+
+**Symptoms:**
+- Target and online encoders converge so closely that alignment signal vanishes.
+
+**Suggestions:**
+- Reintroduce stochastic perturbation into one branch (e.g., predictor noise).
+- Decouple target branch with asymmetric dropout or frozen layers.
+- Add target update clipping or noise to preserve drift margin.
+
+---
+
+## 664. Decoder Feedback into Encoder Causes Feature Degeneration
+
+**Symptoms:**
+- Latents collapse to reconstructable but uninformative vectors (e.g., low-rank blobs).
+
+**Suggestions:**
+- Apply gradient stopping between decoder and encoder.
+- Introduce information bottleneck loss to filter reconstruction feedback.
+- Visualize encoder activation rank pre/post decoder connection.
+
+---
+
+## 665. Token Embedding Norms Drift Apart, Causing Imbalanced Feature Contribution
+
+**Symptoms:**
+- Some tokens dominate attention or projection due to norm magnitude.
+
+**Suggestions:**
+- Normalize all token vectors before attention or projection.
+- Add token-wise norm regularization loss (e.g., L2 deviation penalty).
+- Monitor token variance heatmap and suppress high-norm outliers.
+
+---
+
+## 666. Dynamic Positional Embeddings Fail to Generalize Across View Crops
+
+**Symptoms:**
+- Tokens lose location awareness when views are shifted or cropped differently.
+
+**Suggestions:**
+- Replace absolute encoding with relative positional bias.
+- Use cropped-view-aware position embeddings, normalized per patch.
+- Add spatial jitter robustness loss: invariant under small shifts.
+
+---
+
+## 667. Head Entanglement in Multi-Objective Training Causes Gradient Conflict
+
+**Symptoms:**
+- Multiple heads (e.g., decoder, contrastive, semantic) compete, reducing all performance.
+
+**Suggestions:**
+- Apply gradient surgery (e.g., PCGrad, GradDrop) to reduce interference.
+- Use task-specific feature gates before each head.
+- Track head-to-head cosine gradient angle and suppress when below 0.
+
+---
+
+## 668. Representations Collapse During Mixed-Label / Unlabeled Batch Training
+
+**Symptoms:**
+- Combining labeled and unlabeled samples destabilizes latent space (SSL + semi-supervised).
+
+**Suggestions:**
+- Separate batch statistics and normalization paths per label mode.
+- Apply confidence threshold masking on pseudo-labels.
+- Add dual-space contrastive loss: one for labeled, one for unlabeled data.
+
+---
+
+## 669. Per-Feature Activation Saturation Leads to Dead Units in Late Layers
+
+**Symptoms:**
+- Some latent dimensions never activate or carry zero gradient.
+
+**Suggestions:**
+- Add activation histogram-based reweighting.
+- Apply neuron revival loss: L2 boost on underused dimensions.
+- Re-initialize dead dimensions or use feature dropout on active units.
+
+---
+
+## 670. Latent Norm Scaling Interferes With Cosine-Based Losses
+
+**Symptoms:**
+- Cosine similarity plateaus even as latent norms drift, due to scale dependence.
+
+**Suggestions:**
+- Normalize features before cosine loss computation (F.normalize(z)).
+- Use norm-preserving projection layers (e.g., weight norm regularized).
+- Track norm histogram vs. alignment score to detect scale collapse.
+
+---
+
+## 671. Multi-View Alignment Collapses Despite Augmentation Diversity
+
+**Symptoms:**
+- Model still collapses even when views are visually diverse (e.g., crop + color + blur).
+
+**Suggestions:**
+- Add semantic augmentation tracking to ensure views differ beyond pixels.
+- Use augmentation-conditioned contrastive loss to penalize easy alignments.
+- Introduce triplet-style view selection: anchor, hard positive, hard negative.
+
+---
+
+## 672. High-Confidence Sample Mining Causes Prototype Collapse
+
+**Symptoms:**
+- Prototypes skew toward confident samples and ignore class diversity.
+
+**Suggestions:**
+- Add prototype assignment entropy regularization.
+- Limit contribution per-sample via confidence-based gradient clipping.
+- Reweight samples to increase diversity in prototype update (e.g., via rarity score).
+
+---
+
+## 673. DDP Training with BatchNorm Leads to Cross-Replica Collapse
+
+**Symptoms:**
+- Some devices contribute collapsed stats, corrupting global batch norm behavior.
+
+**Suggestions:**
+- Use SyncBatchNorm or switch to GroupNorm / LayerNorm for DDP.
+- Monitor per-replica latent mean and variance to detect imbalance.
+- Train with per-device loss logging and collapse heatmap by replica ID.
+
+---
+
+## 674. Overuse of Token Dropout Leads to Feature Under-Activation
+
+**Symptoms:**
+- High dropout of input or intermediate tokens causes consistent dead patches.
+
+**Suggestions:**
+- Schedule token dropout (e.g., high early, reduce late).
+- Add token survival heatmap and minimum activation penalty.
+- Use structured token dropout (e.g., rows/columns) instead of pure random.
+
+---
+
+## 675. Adaptive Loss Re-Weighting Induces Oscillation or Collapse
+
+**Symptoms:**
+- Automated λ, μ, or ν coefficients (e.g., in VICReg) destabilize feature learning.
+
+**Suggestions:**
+- Smooth coefficient changes using EMA over loss ratios.
+- Cap adaptive weights to avoid runaway influence.
+- Monitor loss component variance and stabilize when spikes are detected.
+
+---
+
+## 676. Representation Becomes Sensitive to Patch Boundary in Sliding Window Models
+
+**Symptoms:**
+- Sliding input crops yield inconsistent latents depending on window alignment.
+
+**Suggestions:**
+- Train with patch-boundary dropout or blurred window edges.
+- Add sliding-consistency loss: adjacent crops should yield similar pooled features.
+- Introduce boundary-aware pooling layers.
+
+---
+
+## 677. Positional Encoding Conflicts with Learned Spatial Induction
+
+**Symptoms:**
+- Learned patterns (e.g., convolution or MLP attention) are disrupted by fixed positional encodings.
+
+**Suggestions:**
+- Switch to relative or rotary embeddings that preserve spatial dynamics.
+- Train with position dropout or learnable positional noise.
+- Use learned offset encodings per layer to reduce position rigidity.
+
+---
+
+## 678. Cluster Consistency Collapses When Prototype Update Is Too Frequent
+
+**Symptoms:**
+- Online prototype updates cause cluster movement faster than representation evolution.
+
+**Suggestions:**
+- Use EMA prototype updates or delayed gradient buffer updates.
+- Introduce prototype stabilization loss: slow center drift over time.
+- Visualize assignment trajectories to identify jitter.
+
+---
+
+## 679. Shared Projection Heads Drift Across Modalities Despite Alignment Loss
+
+**Symptoms:**
+- Text/image/audio all use same projection, but latent clusters diverge.
+
+**Suggestions:**
+- Use modality-specific projection paths before alignment layer.
+- Apply modality contrastive loss between aligned pairs only.
+- Penalize latent centroid drift across modality groups.
+
+---
+
+## 680. Inference-Time Collapse Triggered by Batch Size or LayerNorm Mode
+
+**Symptoms:**
+- Features appear fine in training, but collapse or shift during evaluation/inference.
+
+**Suggestions:**
+- Validate under true inference mode (model.eval() + no augmentations).
+- Audit normalization behavior (BatchNorm vs. LayerNorm) under different batch sizes.
+- Add inference-only latent logging to compare with training checkpoints.
+
+---
+
+## 681. Interpolation-Based Augmentations (Mixup, CutMix) Collapse Latent Diversity
+
+**Symptoms:**
+- Mixed samples map to nearly identical representations, reducing class separability.
+
+**Suggestions:**
+- Add interpolation consistency loss: encourage latent distance proportional to mix ratio.
+- Use label sharpening or confidence-aware weighting to reduce over-softening.
+- Train with a small portion of pure (non-mixed) samples to anchor structure.
+
+---
+
+## 682. Long-Tail Class Representations Drift Toward Frequent Class Prototypes
+
+**Symptoms:**
+- Rare class embeddings collapse or blend with dominant classes in latent space.
+
+**Suggestions:**
+- Apply class-wise VC loss to enforce tail-class variance.
+- Use logit margin penalties between majority and minority class centers.
+- Track prototype assignment entropy across class distribution.
+
+---
+
+## 683. Masked Modeling Objectives Pull Representations Toward Trivial Completion Patterns
+
+**Symptoms:**
+- Model learns average reconstruction behavior without semantic grounding.
+
+**Suggestions:**
+- Penalize decoder output variance collapse.
+- Add semantic-aware targets (e.g., token-level categories or attributes).
+- Replace decoder-only learning with encoder-anchored masked contrastive loss.
+
+---
+
+## 684. Shared Weight Layers Across Branches Create Gradient Conflict
+
+**Symptoms:**
+- Layers shared between views or tasks produce conflicting gradients and collapse.
+
+**Suggestions:**
+- Apply view-specific routing or task gates before shared weights.
+- Use gradient conflict mitigation (e.g., cosine filtering, orthogonal projection).
+- Alternate updates per branch to minimize cross-step interference.
+
+---
+
+## 685. Latent Representations Saturate When Trained With Decoder-Heavy Objectives
+
+**Symptoms:**
+- Decoder achieves low loss, but encoder features become indistinct.
+
+**Suggestions:**
+- Train encoder with discriminative alignment head in parallel.
+- Freeze decoder during alternate epochs to focus on upstream feature development.
+- Add feature diversity probe on encoder mid-layers.
+
+---
+
+## 686. Self-Supervised Loss Operates in Wrong Feature Space (Post-LayerNorm or Post-Projection)
+
+**Symptoms:**
+- Cosine sim or contrastive loss computed after heavy normalization hides collapse.
+
+**Suggestions:**
+- Log and monitor raw (pre-norm) feature statistics.
+- Add losses on multiple latent levels: raw encoder, projected, and normalized.
+- Penalize pre-projection feature flatness with rank or variance loss.
+
+---
+
+## 687. Negative Sampling Space Collapses Around Popular Classes in Contrastive Models
+
+**Symptoms:**
+- Most negatives come from dominant class features, reducing alignment pressure for others.
+
+**Suggestions:**
+- Use class-balanced or diversity-aware negative sampling.
+- Add memory bank entropy maximization to expand representation space.
+- Penalize negatives with high assignment frequency over recent batches.
+
+---
+
+## 688. Encoder Becomes a No-Op Pass-Through After Layer Freezing Schedule
+
+**Symptoms:**
+- Gradual unfreezing leads to layers with near-zero gradient and low contribution.
+
+**Suggestions:**
+- Add layer-specific activation logging and gradient monitoring.
+- Use per-layer re-initialization warm-up post-unfreeze.
+- Apply intermediate supervision heads to reactivate frozen layers.
+
+---
+
+## 689. Feature Norm Collapse Happens in Last Epochs Due to Scheduler Decay
+
+**Symptoms:**
+- Learning rate or weight decay schedules shrink feature magnitudes near convergence.
+
+**Suggestions:**
+- Decouple feature norm from LR using explicit norm preservation loss.
+- Monitor latent L2 norm trajectory across training stages.
+- Flatten LR curve near convergence to reduce decay-induced collapse.
+
+---
+
+## 690. Downstream Finetuning Pulls All Features Toward Classification Layer Direction
+
+**Symptoms:**
+- Final classifier dominates gradient flow and collapses representation manifold.
+
+**Suggestions:**
+- Add orthogonalization loss between encoder output and classifier weight vector.
+- Use low-rank regularization on classifier to limit overfitting capacity.
+- Fine-tune with frozen encoder + adapter modules first, then gradual full model unfreeze.
+
+---
+
+## 691. Latent Projections Drift Continuously During Training, Obscuring Convergence
+
+**Symptoms:**
+- Feature alignment improves, but representation axes rotate or drift across epochs.
+
+**Suggestions:**
+- Track Procrustes distance or kernel alignment across checkpoints.
+- Add temporal anchor loss (e.g., cosine similarity to fixed reference features).
+- Freeze projection head periodically to stabilize encoder.
+
+---
+
+## 692. Domain Adaptation Causes Modality-to-Content Collapse
+
+**Symptoms:**
+- Features become modality-aligned rather than task/content-aligned (e.g., all images together, all text together).
+
+**Suggestions:**
+- Train with domain-invariant loss (e.g., adversarial alignment).
+- Add modality confusion head to enforce domain mixing.
+- Use shared content prototypes and align across domains conditionally.
+
+---
+
+## 693. Dead Feature Dimensions Are Reused Improperly During Reinitialization
+
+**Symptoms:**
+- Previously dead neurons regain activity but encode trivial or redundant signals.
+
+**Suggestions:**
+- Monitor activation diversity post-reinit.
+- Add decorrelation loss on reactivated dimensions.
+- Use structured reinit (e.g., orthogonal to existing active directions).
+
+---
+
+## 694. Non-Stationary Features Emerge From Over-Tuned Learning Schedules
+
+**Symptoms:**
+- Latent structure fluctuates repeatedly due to aggressive LR decay, warmups, or cosine schedules.
+
+**Suggestions:**
+- Stabilize with EMA on features or heads.
+- Add latent temporal smoothness loss (cosine sim across epochs).
+- Flatten learning rate transitions or smooth decay near convergence.
+
+---
+
+## 695. Cosine Similarity Remains High While Variance Collapses Silently
+
+**Symptoms:**
+- Model passes contrastive metrics but VC loss shows latent flattening.
+
+**Suggestions:**
+- Prioritize variance monitoring alongside alignment metrics.
+- Add feature entropy tracking or eigenvalue spectrum alerts.
+- Penalize collapsed dimensions even if aligned well.
+
+---
+
+## 696. Modality-Specific Decoders Interfere With Shared Encoder Learning
+
+**Symptoms:**
+- Text/audio/image decoders backprop incompatible gradients to shared encoder.
+
+**Suggestions:**
+- Apply gradient routing filters or modality-specific encoders + shared fusion.
+- Use adapter layers between encoder and decoders to reduce interference.
+- Freeze encoder periodically and compare cross-modality latent consistency.
+
+---
+
+## 697. Large Projection Heads Cause Overfitting to Alignment Loss
+
+**Symptoms:**
+- Wide or deep heads absorb training signal, reducing encoder adaptability.
+
+**Suggestions:**
+- Add dimensionality bottleneck to projection head.
+- Monitor gradient flow into encoder vs. projection.
+- Apply projection head dropout or freezing during final training phases.
+
+---
+
+## 698. Representation Quality Varies Wildly With Batch Order or Random Seed
+
+**Symptoms:**
+- Small changes in data shuffle or init lead to large downstream performance differences.
+
+**Suggestions:**
+- Log feature rank and alignment variance across seeds.
+- Use curriculum or stratified batch construction early in training.
+- Add batch robustness regularization: encourage invariant features across permutations.
+
+---
+
+## 699. Latent Feature Norm Grows Unchecked Due to Alignment-Only Training
+
+**Symptoms:**
+- Cosine sim improves, but latent L2 norms explode.
+
+**Suggestions:**
+- Normalize latent features before alignment loss computation.
+- Add norm regularization loss (e.g., unit norm or bounded L2).
+- Use batch norm in projection head to control norm inflation.
+
+---
+
+## 700. Contrastive Objectives Forget Negative Diversity Over Long Training
+
+**Symptoms:**
+- Negative samples become too similar (or same) across epochs, reducing contrastive signal.
+
+**Suggestions:**
+- Add hard-negative mining with dynamic memory banks.
+- Track negative alignment spread and penalize cluster convergence.
+- Use cross-epoch negatives or augment pool with historical features.
+
+---
 
 
 
